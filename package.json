@@ -23,5 +23,9 @@
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.9.3",
     "webpack-html-plugin": "^0.1.1"
+  },
+  "dependencies": {
+    "@mediapipe/hands": "^0.4.1646424915",
+    "pako": "^2.1.0"
   }
 }
