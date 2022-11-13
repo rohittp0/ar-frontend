@@ -1,0 +1,33 @@
+.ui {
+    display: inline-flex;
+    font-family: sans-serif;
+    padding: 20px;
+}
+
+.ui p {
+    margin: 10px 30px 0 0;
+    font-weight: bold;
+}
+
+.ui button {
+    background-color: #f44336;
+    /* Red */
+    color: white;
+    padding: 10px 25px;
+    text-align: center;
+    display: inline-block;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.ui span {
+    font-size: 1.2rem;
+    padding: 5px;
+}
+
+.video {
+    padding: 0;
+    margin: 0;
+    border-style: solid;
+    border-width: thick;
+}
