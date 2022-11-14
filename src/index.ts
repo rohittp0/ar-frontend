@@ -5,29 +5,30 @@ const myVideo = <HTMLVideoElement>document.getElementById("myVideo");
 const resultCtx = (<HTMLCanvasElement>document.getElementById("resultCanvas")).getContext("2d");
 const overlayCtx = (<HTMLCanvasElement>document.getElementById("overlayCanvas")).getContext("2d");
 
+const transporter = new Transporter(30, myVideo);
 
-const hands = new Hands({locateFile: (file) =>
-    {
+const hands = new Hands({
+    locateFile: (file) => {
         return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-    }});
+    }
+});
 
 hands.setOptions({
     maxNumHands: 1,
+    modelComplexity: 1,
     minDetectionConfidence: 0.5,
     minTrackingConfidence: 0.5
 });
 
-// hands.initialize().then(undefined);
-
-const transporter = new Transporter(30, myVideo);
+hands.initialize().then();
 
 transporter.setDoDetection(async (video) =>
 {
     let result;
 
-    while(!result)
+    while(!(result?.length > 0))
     {
-        hands.send({image: video}).then(undefined);
+        hands.send({image: video}).catch((e) => console.error(e));
         result = await new Promise<NormalizedLandmarkListList | undefined>((resolve) =>
             hands.onResults(({ multiHandLandmarks }) =>
                 resolve(multiHandLandmarks)));

@@ -32,20 +32,20 @@ class Transporter
 
         this.ready = new Promise<void>((resolve) => this.video.onplaying = () => resolve());
 
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const that = this;
-
         fetch(`${PROTOCOL}://${HOST}:${PORT}/port`, {method: "POST"})
             .then(res => res.json())
             .then((json) => `${PROTOCOL_WS}://${HOST}:${json.port}`)
-            .then((url) =>
-            {
-                that.ws = new WebSocket(url);
-                that.ws.onopen = () => that.start();
-                that.ws.onmessage = ({ data }) => that.onMessage(data);
-            });
+            .then(this.connect);
 
     }
+
+    private connect = async (url: string) =>
+    {
+        this.ws = new WebSocket(url);
+        this.ws.onopen = () => this.start();
+        this.ws.onmessage = ({ data }) => this.onMessage(data);
+        this.ws.onerror = (e) => console.error(e);
+    };
 
     private async start()
     {
@@ -145,6 +145,9 @@ class Transporter
 
     stop = () =>
     {
+        if(!this.ws)
+            return console.warn("No websocket to close.");
+
         this.ws.close();
 
         if(this.video.srcObject && "getTracks" in this.video.srcObject)
