@@ -45,6 +45,7 @@ class Transporter
         this.ws.onopen = () => this.start();
         this.ws.onmessage = ({ data }) => this.onMessage(data);
         this.ws.onerror = (e) => console.error(e);
+        this.ws.onclose = this.stop;
     };
 
     private async start()
@@ -73,8 +74,6 @@ class Transporter
         }
         catch(err)
         {}
-
-        console.log(typeof data);
 
         if(this.onResult && typeof data !== "string")
             this.onResult(await createImageBitmap(data));
@@ -127,8 +126,11 @@ class Transporter
 
         const timeDiff = performance.now() - this.checkpoint.time;
 
-        if(timeDiff > this.threshold)
+        if(timeDiff > this.threshold) {
             this.local = !this.local;
+
+            console.log(`Latency threshold exceeded, switching to ${this.local ? "local" : "remote"}`);
+        }
 
         return this.latencySpan.innerText = timeDiff.toFixed();
     }

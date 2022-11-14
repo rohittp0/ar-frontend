@@ -5,7 +5,7 @@ const myVideo = <HTMLVideoElement>document.getElementById("myVideo");
 const resultCtx = (<HTMLCanvasElement>document.getElementById("resultCanvas")).getContext("2d");
 const overlayCtx = (<HTMLCanvasElement>document.getElementById("overlayCanvas")).getContext("2d");
 
-const transporter = new Transporter(30, myVideo);
+const transporter = new Transporter(20, myVideo);
 
 const hands = new Hands({
     locateFile: (file) => {
