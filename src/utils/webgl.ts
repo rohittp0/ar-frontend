@@ -9,53 +9,6 @@ void main() {
 }
 `;
 
-export const fragShaderDiff = `
-precision highp float;
-varying vec2 texCoords;
-
-uniform sampler2D textureCurrent;
-uniform sampler2D texturePrevious;
-
-float toGrey(vec3 color)
-{
-    return color.r * 0.299 + color.g * 0.587 + color.b * 0.114;
-}
-
-float unclamp(float color1, float color2)
-{
-    if (color1<color2){
-        if (color2 - color1 > 0.0){
-            return 1.0 - color2 + color1;
-        } else {
-            return 0.0;
-        }
-    } else {
-        if (color1 - color2 > 0.0){
-            return color1 -  color2;
-        }
-        else {
-            return 0.0;
-        }
-    }
-}
-
-void main()
-{
-    vec4 colorPrev = texture2D(texturePrevious, texCoords);
-    vec4 colorCurrent = texture2D(textureCurrent, texCoords);
-
-    if(abs(toGrey(colorPrev.rgb) - toGrey(colorCurrent.rgb)) > 0.1)
-    {    
-        float red = unclamp(colorCurrent.r, colorPrev.r);
-        float green = unclamp(colorCurrent.g, colorPrev.g);
-        float blue = unclamp(colorCurrent.b, colorPrev.b);
-        gl_FragColor = vec4(red,green,blue,1.0);
-    }
-    else 
-        gl_FragColor = vec4(0,0,0,1.0);
-}
-`;
-
 export const fragShaderAdd = `
 precision highp float;
 varying vec2 texCoords;
@@ -107,6 +60,9 @@ function setUpWebGl(canvas: HTMLCanvasElement, fragShaderSource: string): WebGLR
 
     gl.compileShader(vertShader);
     gl.compileShader(fragShader);
+
+    console.log("Vertex shader log: " + gl.getShaderInfoLog(vertShader));
+    console.log("Fragment shader log: " + gl.getShaderInfoLog(fragShader));
 
     const program = gl.createProgram();
 

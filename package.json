@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@mediapipe/hands": "^0.4.1646424915",
+    "glfx": "^0.0.4",
     "pako": "^2.1.0"
   }
 }

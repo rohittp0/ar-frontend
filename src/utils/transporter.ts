@@ -1,6 +1,9 @@
-import { setUpWebGl, fragShaderDiff, fragShaderAdd, updateTexture } from "./webgl";
 import * as pako from "pako";
+import * as fx from "glfx";
+
+import { setUpWebGl, fragShaderAdd, updateTexture } from "./webgl";
 import {HOST, PORT, PROTOCOL, PROTOCOL_WS} from "./env";
+import {fragShaderDiff} from "./fragShaderDiff";
 
 class Transporter
 {
@@ -13,11 +16,13 @@ class Transporter
     private additionCtx = setUpWebGl(document.getElementById("remoteCanvas") as HTMLCanvasElement, fragShaderAdd);
     private normalCtx = (<HTMLCanvasElement>document.getElementById("previousCanvas")).getContext("2d");
 
+    private noiseCanvas = fx.canvas();
+    private noiseTexture;
 
     private doDetection: ((video: HTMLVideoElement) => Promise<string>) | undefined;
     private onResult: ((image: CanvasImageSource | null) => void) | undefined;
 
-    private local = true;
+    private local = false;
     private frames = 0;
 
     private checkpoint = { maxGap: 10, time: 0, count: 0 };
@@ -29,6 +34,8 @@ class Transporter
     {
         this.threshold = threshold;
         this.video = video;
+
+        this.noiseTexture = this.noiseCanvas.texture(video);
 
         this.ready = new Promise<void>((resolve) => this.video.onplaying = () => resolve());
 
@@ -58,6 +65,20 @@ class Transporter
         this.ws.send(await this.getFrame() || "");
     }
 
+    private sendFrames = async () =>
+    {
+        let toSend: string | Blob | null;
+
+        if(this.local && this.doDetection)
+            toSend = await this.doDetection(this.video);
+        else
+            toSend = await this.getFrame();
+
+        if(!toSend) throw new Error("Invalid frame, can't send.");
+
+        this.ws.send(toSend);
+    }
+
     private async onMessage(data: Blob | string)
     {
         this.showLatency();
@@ -80,32 +101,34 @@ class Transporter
         else if(this.onResult)
             this.onResult(null);
 
-        let toSend: string | Blob | null;
+        await this.sendFrames();
+    }
 
-        if(this.local && this.doDetection)
-            toSend = await this.doDetection(this.video);
-        else
-            toSend = await this.getFrame();
-
-        if(!toSend) throw new Error("Invalid frame, can't send.");
-
-        this.ws.send(toSend);
+    private deNoise(image)
+    {
+        this.noiseTexture.loadContentsOf(image);
+        this.noiseCanvas.draw(this.noiseTexture).denoise(90).update();
+        return this.noiseCanvas;
     }
 
     private async getFrame(): Promise<Blob | null>
     {
         let toSend: HTMLCanvasElement;
 
-        if (++this.frames % 90 === 0 && this.normalCtx)
+        if (++this.frames === 0)
         {
             this.normalCtx.drawImage(this.video, 0, 0, this.video.width, this.video.height);
+            this.normalCtx.drawImage(this.deNoise(this.normalCtx.canvas), 0, 0, this.video.width, this.video.height);
             updateTexture(this.additionCtx, this.BLACK, 0);
             toSend = this.normalCtx.canvas as HTMLCanvasElement;
         }
         else
         {
-            updateTexture(this.subtractCtx, this.additionCtx.canvas, 0);
-            updateTexture(this.subtractCtx, this.video, 1);
+            const frame = this.deNoise(this.video)
+            updateTexture(this.subtractCtx, this.normalCtx.canvas, 0);
+            updateTexture(this.subtractCtx, frame, 1);
+
+            this.normalCtx.drawImage(frame, 0, 0, this.video.width, this.video.height);
 
             toSend = this.subtractCtx.canvas  as HTMLCanvasElement;
         }
@@ -113,10 +136,10 @@ class Transporter
         updateTexture(this.additionCtx, this.additionCtx.canvas, 0);
         updateTexture(this.additionCtx, toSend, 1);
 
-        const blob = <Blob>await new Promise<Blob | null>((resolve) => toSend.toBlob((blob) => resolve(blob)));
+        const blob = <Blob>await new Promise<Blob | null>((resolve) => toSend.toBlob((blob) => resolve(blob), ));
 
 
-        return new Blob([(this.frames % 90 === 0 ? "1" : "0"), blob], { type: blob.type });
+        return new Blob([(this.frames === 0 ? "1" : "0"), blob], { type: blob.type });
     }
 
     private showLatency()
@@ -126,11 +149,11 @@ class Transporter
 
         const timeDiff = performance.now() - this.checkpoint.time;
 
-        if(timeDiff > this.threshold) {
-            this.local = !this.local;
-
-            console.log(`Latency threshold exceeded, switching to ${this.local ? "local" : "remote"}`);
-        }
+        // if(timeDiff > this.threshold) {
+        //     this.local = !this.local;
+        //
+        //     console.log(`Latency threshold exceeded, switching to ${this.local ? "local" : "remote"}`);
+        // }
 
         return this.latencySpan.innerText = timeDiff.toFixed();
     }
