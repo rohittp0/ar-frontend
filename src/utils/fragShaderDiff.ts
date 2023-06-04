@@ -1,6 +1,6 @@
 export const fragShaderDiff = `
-#define KERNEL_SIZE 33
-#define KERNEL_SIZE_FLOAT 33.0
+#define KERNEL_SIZE 3
+#define KERNEL_SIZE_FLOAT 3.0
 #define FRAME_SIZE_INV 0.00390625
 
 precision highp float;
@@ -27,7 +27,8 @@ float getNeighbourhoodAverage(const sampler2D texture1, const sampler2D texture2
             vec4 color1 = texture2D(texture1, texCoords + offset);
             vec4 color2 = texture2D(texture2, texCoords + offset);
             
-            sum += diff(color1.rgb, color2.rgb) * ( ( abs( float(i) ) + abs( float(j) ) ) / KERNEL_SIZE_FLOAT );
+            sum += diff(color1.rgb, color2.rgb) * 
+            ((6.0 - abs( float(i) ) + abs( float(j) ) ) / KERNEL_SIZE_FLOAT );
         }
     }
     

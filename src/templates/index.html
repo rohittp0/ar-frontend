@@ -15,17 +15,21 @@
 
 <body>
 <div>
+    <div class="ui">
+        <p>Total Latency <span id="latency">-1.00</span> ms</p>
+        <button id="stop">Stop</button>
+    </div><br>
     <!-- To be passed as input -->
-    <video id="myVideo" autoplay muted width="256px" height="256px" class="video"></video>
+    <video id="myVideo" autoplay muted width="300px" height="300px" class="video"></video>
 
     <!-- For use by Protocol -->
-    <canvas id="previousCanvas" width="256px" height="256px" class="video" style="border-color: blue;"></canvas>
-    <canvas id="recordCanvas" width="256px" height="256px" class="video" style="border-color: red;"></canvas>
-    <canvas id="remoteCanvas" width="256px" height="256px" class="video" style="border-color: green;"></canvas>
+    <canvas id="previousCanvas" width="300px" height="300px" class="video" style="border-color: blue;" hidden></canvas>
+    <canvas id="recordCanvas" width="300px" height="300px" class="video" style="border-color: red;"></canvas>
+    <canvas id="remoteCanvas" width="300px" height="300px" class="video" style="border-color: green;" hidden></canvas>
 
     <!-- For direct access by the user -->
-    <canvas id="resultCanvas" width="256px" height="256px" class="video" style="border-color: yellow;"></canvas>
-    <canvas id="overlayCanvas" width="256px" height="256px" class="video" style="border-color: cyan;"></canvas>
+    <canvas id="resultCanvas" width="300px" height="300px" class="video" style="border-color: yellow;" hidden></canvas>
+    <canvas id="overlayCanvas" width="300px" height="300px" class="video" style="border-color: cyan;"></canvas>
 </div>
 <!--
 <div>
@@ -34,11 +38,6 @@
     <output>5</output>
 </div>
 -->
-<br>
-<div class="ui">
-    <p>Total Latency <span id="latency">-1.00</span> ms</p>
-    <button id="stop">Stop</button>
-</div>
 
 </body>
 
